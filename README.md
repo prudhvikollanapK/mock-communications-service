@@ -33,6 +33,7 @@ Redis manages live call state, rate limiting and event broadcasting. PostgreSQL 
 
 1. Download and extract the ZIP.
 2. Open the `mock-communications-service` folder in VS Code or a terminal.
+3. Create a .env file in the project root directory and add the environment configuration shared in my assessment submission response.
 3. Make sure Docker is running.
 4. Start all services:
 
@@ -53,6 +54,13 @@ docker compose down
 ```
 
 To stop services and delete the database volume too, run `docker compose down -v`. This permanently deletes local database data.
+
+## Important Notes
+
+1. The .env file contains environment-specific configuration and should not be committed to GitHub.
+2. The provided API key(shared in my assessment submission response) and database credentials are for local development and assessment purposes only.
+3. The application uses Docker Compose to start the FastAPI server, Celery worker, Redis and PostgreSQL.
+4. Refer to the API documentation at /docs to explore and test the available endpoints.
 
 ## Authentication
 
