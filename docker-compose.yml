@@ -1,0 +1,68 @@
+services:
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/communications
+      REDIS_URL: redis://redis:6379/0
+      API_KEYS: dev-key
+      CONCURRENT_CALL_LIMIT: 3
+      CPS_LIMIT: 2
+      RECORDING_DIR: /recordings
+    volumes:
+      - recordings:/recordings
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A app.tasks.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/communications
+      REDIS_URL: redis://redis:6379/0
+      API_KEYS: dev-key
+      CONCURRENT_CALL_LIMIT: 3
+      CPS_LIMIT: 2
+      RECORDING_DIR: /recordings
+    volumes:
+      - recordings:/recordings
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: communications
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d communications"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  recordings:
